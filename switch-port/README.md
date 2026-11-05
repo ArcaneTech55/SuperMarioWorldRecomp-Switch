@@ -41,3 +41,20 @@ The last command attempts to produce `switch-port/smw-recomp-platform-check.nro`
 - Test runtime correctness, audio latency, saving, transitions and widescreen enemy spawning on physical Switch.
 
 The native aspect goal is 16:9 without distortion, using the upstream adaptive renderer at approximately 342×224 logical pixels.
+
+
+## Latest work: game renderer bridge and cross-link fix
+
+- Fixed the diagnostic Makefile to link through the devkitA64 C compiler driver rather than the host macOS `ld`. The previous failure `ld: unknown option: -specs=/opt/devkitpro/libnx/switch.specs` was a build-script error.
+- Added `smw_switch_engine_bridge.[ch]`: a **game-facing** adapter that selects the real upstream 342x224 adaptive viewport and calls the existing `RtlDrawPpuFrame` game renderer. **It is not linked to the diagnostic NRO** because it requires the full generated 65816 guest program and snesrecomp runner.
+
+After pulling, build the diagnostic with:
+
+```sh
+cd ~/Desktop/SMW-Switch/SuperMarioWorldRecomp-Switch
+git pull origin switch-port
+make -C switch-port clean
+bash switch-port/build-platform-check.sh
+```
+
+A successful diagnostic NRO tests platform services only. Building the **playable game** is still blocked on cross-compiling the recomp runtime and linking/initializing the generated guest game; do not rename the diagnostic and assume it runs SMW.
