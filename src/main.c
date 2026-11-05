@@ -28,6 +28,9 @@
 #include "framedump.h"
 #include "config.h"
 #include "smw_renderer.h"
+#ifdef __SWITCH__
+#include "../switch-port/smw_switch_input.h"
+#endif
 #ifdef SMW_COOP_BUILD
 #include "coop_patch.h"
 #endif
@@ -2037,6 +2040,9 @@ error_reading:;
   }
 #endif
 
+#ifdef __SWITCH__
+  smw_switch_input_init();
+#endif
   host_report_breadcrumb("entering main loop");
   StallLogInit();
 
@@ -2178,6 +2184,13 @@ error_reading:;
      * A B X Y L R). HandleCommand is idempotent for set/clear, so calling
      * it every frame is safe. */
     RefreshKeybindControllerBits();
+#ifdef __SWITCH__
+    /* Feed native Joy-Con/Pro Controller state to the same 12 SNES button
+     * bits used by the desktop gamepad pipeline. No SDL joystick device
+     * enumeration or keybind remapping required on Switch. */
+    SmwSwitchPad switch_pad = smw_switch_input_poll();
+    g_pad_buttons = switch_pad.connected ? switch_pad.snes : 0;
+#endif
 
     g_audio_producer_active = g_audio_device != 0 && !g_turbo &&
         (!g_benchmark_frames || g_benchmark_audio_paced);
