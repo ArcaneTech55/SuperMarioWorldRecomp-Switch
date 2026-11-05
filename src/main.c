@@ -1204,6 +1204,19 @@ int main(int argc, char** argv) {
       snesrecomp_exe_dir_path("config.ini", config_exe_path, sizeof(config_exe_path)))
     config_file = config_exe_path;
   ParseConfigFile(config_file);
+#ifdef __SWITCH__
+  /* The game already streams real SPC audio through SDL_OpenAudioDevice;
+   * request the Switch's normal 48 kHz stereo output. The existing
+   * RtlSetAudioOutputRate(have.freq) code adapts the SPC output to the
+   * hardware format actually granted by SDL. No test-tone backend. */
+  g_config.enable_audio = true;
+  g_config.audio_freq = 48000;
+  g_config.audio_channels = 2;
+  g_config.audio_samples = 1024;
+  g_config.output_method = kOutputMethod_SDL;
+  g_config.skip_launcher = true;
+#endif
+
   // Apply local overrides if present (gitignored). Lets a developer
   // mute audio etc. without touching the checked-in config.ini. Last
   // parser to set a key wins, so local overrides take precedence.
