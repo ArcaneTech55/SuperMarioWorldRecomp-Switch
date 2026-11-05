@@ -1837,7 +1837,11 @@ session_reboot:
   if (snes == NULL) {
 error_reading:;
 #ifdef __SWITCH__
-    ThrowMissingROM();
+    /* The ROM is loaded from the SD card on Switch. There is no desktop
+     * missing-ROM dialog, and a failed SnesInit also reaches this label. */
+    fprintf(stderr, "[SMW Switch] Unable to load or initialize ROM: %s\n",
+            runtime_rom_path ? runtime_rom_path : "(missing)");
+    host_report_fatal("ROM load or SNES initialization failed");
 #else
     char buf[256];
     snprintf(buf, sizeof(buf), "unable to load rom");
