@@ -28,9 +28,12 @@ export TOPDIR := $(CURDIR)
 export VPATH := $(CURDIR)
 export DEPSDIR := $(CURDIR)/$(BUILD)
 export OFILES := $(CFILES:.c=.o)
+# libnx switch_rules uses $(LD) for the ELF link; macOS 'ld' does not
+# understand -specs. Force the devkitA64 compiler driver on both make passes.
+export LD := $(CC)
+export NACPFLAGS += --title="SMW Recomp Platform Check" --author="ArcaneTech55" --version="0.1"
 export INCLUDE := -I$(CURDIR) $(foreach dir,$(LIBDIRS),-I$(dir)/include) -I$(CURDIR)/$(BUILD)
 export LIBPATHS := $(foreach dir,$(LIBDIRS),-L$(dir)/lib)
-export NROFLAGS += --nacp=$(CURDIR)/$(TARGET).nacp
 .PHONY: all clean
 all:
 	@mkdir -p $(BUILD)
