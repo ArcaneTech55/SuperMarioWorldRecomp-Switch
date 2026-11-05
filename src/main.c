@@ -1781,6 +1781,10 @@ session_reboot:
   g_netplay_started = 0;
 #endif
 
+#ifdef __SWITCH__
+  /* libnx uses the SDL2 game renderer, not desktop OpenGL. */
+  g_renderer_funcs = kSdlRendererFuncs;
+#else
   if (g_config.output_method == kOutputMethod_OpenGL) {
     g_win_flags |= SDL_WINDOW_OPENGL;
     OpenGLRenderer_Create(&g_renderer_funcs);
@@ -1788,6 +1792,7 @@ session_reboot:
     g_renderer_funcs = kSdlRendererFuncs;
   }
 
+#endif
   /* Load the SNES ROM. argv[0] is the launcher-resolved path (always
    * non-NULL after snesrecomp_launcher_resolve_rom returned success). */
   uint8 *kRom = NULL;
