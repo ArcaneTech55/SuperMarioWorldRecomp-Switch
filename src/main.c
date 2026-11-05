@@ -1157,6 +1157,11 @@ int main(int argc, char** argv) {
                                            kSmwExtraUsage))
     return 2;
   const char *config_file = args.config_file;
+#ifdef __SWITCH__
+  /* SwitchImpl_Init already anchored cwd on the SD card. Avoid attempting
+   * to anchor writes to the NRO executable's path, which may differ. */
+  if (!config_file) config_file = "config.ini";
+#endif
   const int start_paused = args.start_paused;
   const char *script_file = args.script_file;
   const char *framedump_dir = args.framedump_dir;
@@ -1244,6 +1249,24 @@ int main(int argc, char** argv) {
   static char rom_path_buf[1024];
   static const uint32_t kSmwUsaCrc32 = 0xB19ED489u;
   int rom_resolved_by_launcher = 0;
+#ifdef __SWITCH__
+  /* The console has no desktop ROM file picker. Keep the user's own ROM
+   * alongside saves/ and config.ini on the SD card. This bypasses only
+   * the desktop picker, not the existing cartridge validation/loader. */
+  const char *switch_rom_path = "smw.sfc";
+  FILE *switch_rom = fopen(switch_rom_path, "rb");
+  if (!switch_rom) {
+    switch_rom_path = "Super Mario World (USA).sfc";
+    switch_rom = fopen(switch_rom_path, "rb");
+  }
+  if (!switch_rom) {
+    fprintf(stderr, "[SMW Switch] Place smw.sfc in sdmc:/switch/smw-recomp/\\n");
+    return 1;
+  }
+  fclose(switch_rom);
+  snprintf(rom_path_buf, sizeof(rom_path_buf), "%s", switch_rom_path);
+  rom_resolved_by_launcher = 1;
+#endif
 
 #if SNESRECOMP_NET
   /* Headless/dev LAN sessions use the same netcode and frame barrier as
@@ -1679,6 +1702,7 @@ int main(int argc, char** argv) {
   /* Native Switch defaults: SDL2 output and actual adaptive 16:9.
    * The wider frame is rendered from scene RAM/PPU snapshots; no stretching. */
   g_config.output_method = kOutputMethod_SDL;
+  g_config.skip_launcher = true;
   g_config.fullscreen = 1;
   g_config.ignore_aspect_ratio = false;
   g_smw_video.enabled = true;
