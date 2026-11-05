@@ -227,6 +227,15 @@ void SmwRendererBeginFrame(void) {
   captured = 0;
   hardware_raster.tracking=false;
   if (!g_smw_video.enabled) return;
+#ifdef __SWITCH__
+  /* The title/intro/overworld are presented by the stock renderer.
+   * Avoid allocating/copying 224 VRAM snapshots in non-level scenes. */
+  if (!level_scene) {
+    capture_failed = true;
+    native_x = g_smw_viewport.extra;
+    return;
+  }
+#endif
   capture_failed = !SnesRasterSnapshotBegin(&vram_snapshots, 0x10000, 224);
   native_x = g_smw_viewport.extra;
   if (level_scene && !(frame_ram[0x5b] & 1))
@@ -517,6 +526,19 @@ void SmwRendererDraw(uint8_t *pixels,size_t pitch,const uint8_t *stock) {
   bool control=directory && *directory;
   int shift=background_shift();
   if(control) memcpy(native_control,stock,sizeof(native_control));
+#ifdef __SWITCH__
+  /* Preserve the exact stock 256-pixel scene for title, intro, and fades.
+   * The extended canvas stays black until level raster data is valid.
+   * This avoids attempting Mode-1 reconstruction on unsupported scenes. */
+  if (width == 256 || !level || capture_failed || captured != 224) {
+    for (int y = 0; y < 224; ++y) {
+      uint32_t *dst = (uint32_t *)(pixels + y * pitch);
+      memset(dst, 0, (size_t)width * 4);
+      memcpy(dst + native_x, stock + y * 256 * 4, 256 * 4);
+    }
+    return;
+  }
+#endif
   for(int y=0;y<224;++y) {
     uint32_t *dst=(uint32_t *)(pixels+y*pitch);
     const RasterLine *l=&lines[y];
@@ -530,8 +552,18 @@ void SmwRendererDraw(uint8_t *pixels,size_t pitch,const uint8_t *stock) {
     uint8_t brightness[32];
     for(int i=0;i<32;++i) brightness[i]=((i<<3)|(i>>2))*(raster.inidisp&15)/15;
     sprites(&raster,l,y);
+#ifdef __SWITCH__
+    /* Keep the authentic PPU result in the center, including windowing,
+     * HDMA, Mode-7 effects, sprite layering and fades. Reconstruct only
+     * the newly visible margins, reducing expensive per-pixel tile decoding
+     * substantially on Switch's Cortex-A57 CPU. */
+    memcpy(dst + native_x, stock + y * 256 * 4, 256 * 4);
+#endif
     for(int sx=0;sx<width;++sx) {
       int x=sx-native_x;
+#ifdef __SWITCH__
+      if (x >= 0 && x < 256) continue;
+#endif
       uint16_t bg[3];
       for(int layer=0;layer<3;++layer)
         bg[layer]=background(&raster,l,layer,x+(layer==1?shift:0),y+1);
