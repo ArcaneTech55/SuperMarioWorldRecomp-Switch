@@ -37,7 +37,6 @@ def main():
     parser.add_argument("--cc", required=True)
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--jobs", type=int, default=2)
-    parser.add_argument("--", dest="extra", nargs="*")
     args, flags = parser.parse_known_args()
     if flags and flags[0] == "--":
         flags = flags[1:]
