@@ -293,9 +293,14 @@ static int bundled_cache_helper(char *out, size_t size) {
 /* Never route owner-controlled paths through a shell. The helper contract is
  * an executable, not a command string or .cmd/.sh wrapper; each path below is
  * one argv item even when it contains shell metacharacters or spaces. */
-#ifndef __SWITCH__
 static int run_cache_helper(const char *helper, const char *owner_rom_path,
                             const char *root, const char *result) {
+#ifdef __SWITCH__
+    /* libnx has no child-process execution: cached Falcon assets can still
+     * be loaded, but the desktop cache builder cannot run on Switch. */
+    (void)helper; (void)owner_rom_path; (void)root; (void)result;
+    return 0;
+#else
     char *const argv[] = { (char *)helper, "--rom", (char *)owner_rom_path,
                            "--cache-root", (char *)root, "--result-file",
                            (char *)result, NULL };
@@ -346,6 +351,7 @@ static int run_cache_helper(const char *helper, const char *owner_rom_path,
     }
     if (waitpid(child, &status, 0) < 0) return 0;
     return WIFEXITED(status) && WEXITSTATUS(status) == 0;
+#endif
 #endif
 }
 
@@ -622,16 +628,6 @@ void smw_falcon_presentation_audio_ready(void) {
     else note("approved owner cache audio disabled");
     s_validated_audio_dir[0] = '\0';
 }
-#else
-/* The Switch cannot launch the external desktop cache-builder process.
- * Prebuilt owner caches may still be loaded through the existing cache path;
- * the main Super Mario World gameplay does not depend on this enhancement. */
-static int invoke_cache_helper(const char *owner_rom_path) {
-    (void)owner_rom_path;
-    note("Falcon desktop cache helper cannot run on Nintendo Switch");
-    return 0;
-}
-#endif
 
 int smw_falcon_presentation_activate(const char *owner_rom_path) {
     const char *cache = getenv("SNESRECOMP_FALCON_CACHE");
