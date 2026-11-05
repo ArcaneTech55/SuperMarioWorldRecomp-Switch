@@ -55,7 +55,7 @@ CFLAGS=(
   -std=gnu11 -O2 -fPIC -ffunction-sections -fdata-sections
   -DSNESRECOMP_TRACE=0 -DSNESRECOMP_ENABLE_MODS=0
   -DSNESRECOMP_SDL3=0
-  "-I$ROOT/src" "-I$ROOT/recomp" "-I$ROOT/snesrecomp/runner/src"
+  "-I$ROOT" "-I$ROOT/src" "-I$ROOT/recomp" "-I$ROOT/snesrecomp/runner/src"
   "-I$ROOT/snesrecomp/runner/src/snes"
   "-I$ROOT/snesrecomp/runner/src/desktop"
   "-I$DEVKITPRO/libnx/include"
@@ -74,6 +74,11 @@ manual=(
   "$ROOT/src/smw_renderer.c"
   "$ROOT/src/smw_renderer_hooks.c"
   "$ROOT/src/smw_rtl.c"
+  "$ROOT/src/smw_cpu_infra.c"
+  "$ROOT/src/smw_spc_player.c"
+  "$ROOT/src/gen_stubs.c"
+  "$ROOT/src/foreign_controller.c"
+  "$ROOT/src/mod_audio.c"
 )
 for src in "${manual[@]}"; do
   name="$(basename "${src%.c}")"
