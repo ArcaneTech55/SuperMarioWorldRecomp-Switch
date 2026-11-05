@@ -2486,6 +2486,24 @@ error_reading:;
       continue;
     }
 
+#ifdef __SWITCH__
+    /* SDL2's Switch renderer uses present/vsync as its primary frame clock.
+     * Stacking the desktop 17/17/16 ms delay on top of a blocking present
+     * wastes frame time and can make already-slow frames even slower. */
+    if (g_benchmark_frames == 0 && !g_turbo &&
+        !snesrecomp_sdl_get_render_vsync(g_renderer)) {
+      static Uint64 next_tick;
+      const Uint64 freq = SDL_GetPerformanceFrequency();
+      const Uint64 step = freq / 60u;
+      const Uint64 now = SDL_GetPerformanceCounter();
+      if (!next_tick || now > next_tick + freq / 2u) next_tick = now;
+      next_tick += step;
+      if (next_tick > now) {
+        Uint64 wait_ms = (next_tick - now) * 1000u / freq;
+        if (wait_ms > 0 && wait_ms < 20) SDL_Delay((Uint32)wait_ms);
+      }
+    }
+#else
     // if vsync isn't working, delay manually
     curTick = SDL_GetTicks();
 
@@ -2510,6 +2528,26 @@ error_reading:;
         lastTick = curTick;
       }
     }
+#endif /* !__SWITCH__: desktop frame delay */
+#ifdef __SWITCH__
+    /* Actual delivered frames per second, not a forced 60-FPS label.
+     * Emit infrequently so logging itself does not materially affect speed. */
+    {
+      static Uint64 sample_begin;
+      static unsigned sample_frames;
+      const Uint64 now = SDL_GetPerformanceCounter();
+      if (!sample_begin) sample_begin = now;
+      if (++sample_frames >= 120) {
+        const double secs = (double)(now - sample_begin) /
+                            (double)SDL_GetPerformanceFrequency();
+        if (secs > 0.0)
+          fprintf(stderr, "[SMW Switch perf] %.1f fps over %u frames\n",
+                  sample_frames / secs, sample_frames);
+        sample_begin = now;
+        sample_frames = 0;
+      }
+    }
+#endif
     StallLogFrame(frameCtr, stall_t0, stall_t_events, stall_t_run,
                   stall_t_draw, SDL_GetPerformanceCounter());
   }
