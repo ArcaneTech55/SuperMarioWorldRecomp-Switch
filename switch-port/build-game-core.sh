@@ -20,6 +20,8 @@ fail() { echo "SMW game-core build: $*" >&2; exit 1; }
 [[ -x "$CC" ]] || fail "Missing ARM64 compiler: $CC"
 [[ -x "$AR" ]] || fail "Missing ARM64 archiver: $AR"
 [[ -d "$ROOT/snesrecomp/runner/src" ]] || fail "Missing submodule: run git submodule update --init --recursive"
+command -v cargo >/dev/null 2>&1 || fail "The pinned native analyzer is written in Rust. Install Rust/Cargo (https://rustup.rs/) and rerun."
+
 actual="$(shasum -a 1 "$ROM" | awk '{print $1}')"
 [[ "$actual" == "$EXPECTED_SHA1" ]] || fail "Unsupported ROM SHA-1 $actual"
 
