@@ -57,6 +57,7 @@ void smw_falcon_restore_selection(int restored_foreign_state)
     }
 }
 
+#if defined(SNESRECOMP_ENABLE_MODS) && SNESRECOMP_ENABLE_MODS
 SNES_MOD_CONSTRUCTOR(smw_register_falcon_plugin)
 {
     (void)smw_captain_falcon_register();
@@ -64,3 +65,4 @@ SNES_MOD_CONSTRUCTOR(smw_register_falcon_plugin)
     (void)snes_mod_register_activation_plugin(SMW_FALCON_PLUGIN,
                                               smw_falcon_activate);
 }
+#endif /* SNESRECOMP_ENABLE_MODS */
