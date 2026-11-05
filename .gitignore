@@ -70,3 +70,10 @@ release/
 # from third_party/SMWDisX, and the asar built from third_party/asar.
 # Both are reproducible from the pins by tools/ingest_smwdisx.py.
 _smw_build/
+
+# Nintendo Switch recompiled game staging artifacts
+switch-port/game-build/
+switch-port/*.nro
+switch-port/*.elf
+switch-port/*.nacp
+switch-port/build/
