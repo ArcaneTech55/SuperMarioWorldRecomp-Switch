@@ -117,3 +117,26 @@ This build has not been run on a real Switch toolchain by the assistant;
 the user's M2 Mac has the prerequisite cross compiler. The original
 `switch-port/Makefile` is still a *separate platform diagnostic* and must
 not be mistaken for the game target.
+
+## Experimental final ELF/NRO link target
+
+A new `build-game-nro.sh` script goes beyond the ARM64 archives: it
+cross-compiles the original recomp game host sources and then attempts to
+link their symbols with the generated game and SNES hardware code as
+`SuperMarioWorldRecomp-Switch.elf`. If and ONLY if that link succeeds,
+it invokes `elf2nro` to produce the playable-game candidate
+`switch-port/game-build/SuperMarioWorldRecomp-Switch.nro`.
+
+```bash
+cd ~/Desktop/SMW-Switch/SuperMarioWorldRecomp-Switch
+git pull origin switch-port
+bash switch-port/build-game-nro.sh "../Super Mario World (USA).sfc"
+```
+
+**This is an unverified experimental full-game cross-build attempt.** The
+upstream launcher, mod/plugin code, C++ dependencies, and desktop-oriented
+host interfaces are not all certified libnx-compatible. The script aborts
+on the first genuine compiler or linker error; it will NOT output a fake
+NRO or substitute the platform-check binary. The ARM64 compiler toolchain
+is installed on the user's Mac but unavailable in the assistant container,
+so no successful full link or hardware boot has been verified.
