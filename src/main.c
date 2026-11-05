@@ -1675,6 +1675,16 @@ int main(int argc, char** argv) {
 #endif
   g_ws_active = false;
   g_ws_extra = 0;
+#ifdef __SWITCH__
+  /* Native Switch defaults: SDL2 output and actual adaptive 16:9.
+   * The wider frame is rendered from scene RAM/PPU snapshots; no stretching. */
+  g_config.output_method = kOutputMethod_SDL;
+  g_config.fullscreen = 1;
+  g_config.ignore_aspect_ratio = false;
+  g_smw_video.enabled = true;
+  g_smw_video.adaptive_spawns = true;
+  g_smw_video.aspect = 16.0 / 9.0;
+#endif
   g_smw_viewport = SmwCalculateViewport(&g_smw_video, 0, 0,
       SnesDisplayAspect_Clamp(g_config.display_aspect));
   g_snes_width = g_smw_viewport.width;
