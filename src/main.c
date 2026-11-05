@@ -1107,6 +1107,14 @@ int main(int argc, char** argv) {
    * default 64M entries cover ~64K frames at typical block rates,
    * which means the ring no longer rolls over within any realistic
    * investigation window. Override via SNESRECOMP_CPU_TRACE_RING_ENTRIES. */
+#ifdef __SWITCH__
+  /* Desktop debug tracing defaults can allocate hundreds of MB. Bound
+   * trace buffers before the runner allocates them on Switch hardware.
+   * Retail builds should additionally set SNESRECOMP_TRACE=0. */
+  setenv("SNESRECOMP_CPU_TRACE_RING_ENTRIES", "65536", 0);
+  setenv("SNESRECOMP_BOUNDARY_RING_ENTRIES", "16384", 0);
+  setenv("SNESRECOMP_GM14_TRACE_ENTRIES", "16384", 0);
+#endif
   cpu_trace_init();
   cpu_trace_arm_default_watches();
   setvbuf(stdout, NULL, _IONBF, 0);
