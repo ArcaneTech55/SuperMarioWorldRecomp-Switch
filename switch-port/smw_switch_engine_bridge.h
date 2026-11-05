@@ -2,6 +2,7 @@
 #define SMW_SWITCH_ENGINE_BRIDGE_H
 #include <stdint.h>
 #include <stddef.h>
+#include "smw_switch_video.h"
 
 /* The bridge is compiled with the real recompilation game target, not with
  * the standalone platform-check NRO. The 342x224 buffer must be supplied
@@ -15,4 +16,8 @@ typedef struct SmwSwitchEngineFrame {
 /* Call only after the snesrecomp guest+renderer have been initialized. */
 int smw_switch_engine_enable_widescreen(void);
 int smw_switch_engine_draw(SmwSwitchEngineFrame frame, uint32_t flags);
+/* Draw and present with Switch SDL2 once the game runner is active. */
+int smw_switch_engine_render_present(SmwSwitchVideo *video,
+                                     SmwSwitchEngineFrame frame,
+                                     uint32_t flags);
 #endif
