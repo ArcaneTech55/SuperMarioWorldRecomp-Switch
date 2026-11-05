@@ -58,3 +58,27 @@ bash switch-port/build-platform-check.sh
 ```
 
 A successful diagnostic NRO tests platform services only. Building the **playable game** is still blocked on cross-compiling the recomp runtime and linking/initializing the generated guest game; do not rename the diagnostic and assume it runs SMW.
+
+## Game entrypoint integration (in progress)
+
+Unlike the `switch-port/switch_smoke_main.c` diagnostic, these edits are in the actual desktop game's `src/main.c`, conditional on `__SWITCH__`:
+
+- `src/switch_impl.h` initializes libnx SD access, creates `sdmc:/switch/smw-recomp/`, and establishes the game working directory there.
+- The game selects `smw.sfc` or `Super Mario World (USA).sfc` from that folder without opening a desktop file picker.
+- The game's **existing** `RtlReadSram` / `RtlWriteSram` functions use their normal `saves/` path under that SD working directory. Do not confuse platform-check.dat with actual game saves.
+- Joystick polling feeds Joy-Con / Pro Controller state into `g_pad_buttons` in the running game's main loop.
+- SDL2 is chosen for the actual game instead of the desktop OpenGL renderer. The existing SNES-SPC-to-SDL audio callback is configured for 48 kHz stereo and can resample according to the obtained audio device format.
+- The game main loop respects `appletMainLoop()` so it can leave gameplay via the normal homebrew lifecycle.
+- TRACE-enabled developer builds limit trace ring buffers to low-memory settings.
+
+### SD card layout expected by the game entrypoint
+
+```text
+sdmc:/switch/smw-recomp/
+  smw.sfc                 # Your own USA ROM, never commit it to GitHub
+  config.ini              # Optional game configuration
+  saves/
+    save.srm              # Written by the game's existing SRAM routines
+```
+
+**The project still lacks a complete libnx build target for the generated 65816 game, the snesrecomp runner and their desktop library dependencies. The game entrypoint changes have not been cross-compiled or tested on the Switch.** The diagnostic `Makefile` is still separate and does not provide a game build.
