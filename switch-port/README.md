@@ -140,3 +140,24 @@ on the first genuine compiler or linker error; it will NOT output a fake
 NRO or substitute the platform-check binary. The ARM64 compiler toolchain
 is installed on the user's Mac but unavailable in the assistant container,
 so no successful full link or hardware boot has been verified.
+
+## libnx compatibility: host report
+
+The pinned SNES runtime `host_report.c` includes `sys/utsname.h` and calls
+`uname()`, which are not supplied by devkitPro/libnx. The
+`build-runtime-core.sh` target now substitutes
+`switch-port/compat/host_report.c`, a copy of the pinned implementation with
+only Switch-specific OS identification changed. It retains the rest of the
+host diagnostics and does not modify the `snesrecomp` git submodule.
+
+After pulling, restart the runtime stage directly (the successful ARM64 game
+archive from the earlier stage is reusable):
+
+```sh
+cd ~/Desktop/SMW-Switch/SuperMarioWorldRecomp-Switch
+git pull origin switch-port
+bash switch-port/build-runtime-core.sh
+```
+
+This source adaptation is not yet verified to complete the runtime build; any
+further missing POSIX APIs will require similar genuine libnx adaptations.
