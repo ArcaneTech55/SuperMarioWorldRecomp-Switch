@@ -30,7 +30,7 @@ mkdir -p "$OBJ"
 flags=(
   -std=gnu11 -O2 -ffunction-sections -fdata-sections
   -DSNESRECOMP_TRACE=0 -DSNESRECOMP_ENABLE_MODS=0
-  -DSNESRECOMP_SDL3=0 -D__SWITCH__
+  -DSNESRECOMP_SDL3=0 -D__SWITCH__ -DSNESRECOMP_REVERSE_DEBUG=0
   "-I$ROOT/src" "-I$ROOT/recomp" "-I$RUNNER"
   "-I$RUNNER/snes" "-I$RUNNER/desktop"
   "-I$DEVKITPRO/libnx/include"
