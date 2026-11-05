@@ -55,6 +55,8 @@ hardware=(
   interp816.c tier2_capture.c interp_bridge.c
 )
 objs=()
+manifest="$SELF/game-build/runtime-compile-manifest.tsv"
+: > "$manifest"
 for name in "${sources[@]}"; do
   # host_report.c uses the Unix uname API, which libnx lacks.
   # Compile a fork-local implementation while leaving snesrecomp pinned.
@@ -66,7 +68,7 @@ for name in "${sources[@]}"; do
   [[ -f "$src" ]] || { echo "Missing runtime file: $src" >&2; exit 1; }
   obj="$OBJ/runtime-${name%.c}.o"
   echo "ARM64 runtime: $name"
-  "$CC" "${flags[@]}" -c "$src" -o "$obj"
+  printf '%s\t%s\n' "$src" "$obj" >> "$manifest"
   objs+=("$obj")
 done
 for name in "${hardware[@]}"; do
@@ -74,9 +76,11 @@ for name in "${hardware[@]}"; do
   [[ -f "$src" ]] || { echo "Missing SNES hardware file: $src" >&2; exit 1; }
   obj="$OBJ/snes-${name%.c}.o"
   echo "ARM64 hardware: $name"
-  "$CC" "${flags[@]}" -c "$src" -o "$obj"
+  printf '%s\t%s\n' "$src" "$obj" >> "$manifest"
   objs+=("$obj")
 done
+python3 "$SELF/compile_cached.py" --cc "$CC" --manifest "$manifest" \
+  --jobs "${SMW_BUILD_JOBS:-2}" -- "${flags[@]}"
 out="$SELF/game-build/libsnesrecomp-hardware-aarch64.a"
 rm -f "$out"
 "$AR" rcs "$out" "${objs[@]}"
