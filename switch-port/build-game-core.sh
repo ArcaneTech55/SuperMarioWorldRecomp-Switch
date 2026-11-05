@@ -67,7 +67,7 @@ generated=("$ROOT"/src/gen/*.c)
 (( ${#generated[@]} > 0 )) || fail "Generator produced no src/gen/*.c"
 echo "[2/4] Compiling ${#generated[@]} genuine AOT translation units for ARM64"
 CFLAGS=(
-  -std=gnu11 -O2 -fPIC -ffunction-sections -fdata-sections
+  -std=gnu11 -O2 -ffunction-sections -fdata-sections
   -DSNESRECOMP_TRACE=0 -DSNESRECOMP_ENABLE_MODS=0
   -DSNESRECOMP_SDL3=0 -D__SWITCH__ -DSNESRECOMP_REVERSE_DEBUG=0
   "-I$ROOT" "-I$ROOT/src" "-I$ROOT/recomp" "-I$ROOT/snesrecomp/runner/src"
