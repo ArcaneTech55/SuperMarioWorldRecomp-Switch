@@ -134,7 +134,9 @@ static void smw_msu1_activate(void) {
   (void)snes_mod_register_apu_write_callback(smw_msu1_apu_write);
 }
 
+#if defined(SNESRECOMP_ENABLE_MODS) && SNESRECOMP_ENABLE_MODS
 SNES_MOD_CONSTRUCTOR(smw_register_msu1_plugin) {
   (void)snes_mod_register_reset_callback(smw_msu1_reset);
   (void)snes_mod_register_activation_plugin(SMW_MSU_PLUGIN, smw_msu1_activate);
 }
+#endif /* SNESRECOMP_ENABLE_MODS */
