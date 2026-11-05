@@ -280,3 +280,37 @@ each run, but those stages are much cheaper than 100+ compiler invocations.
 
 Regeneration remains enabled by default for correctness; this optimization
 specifically targets expensive ARM64 C compilation.
+
+## First hardware performance diagnosis (experimental)
+
+The previous widescreen-only optimization did **not** make the game playable
+at 60 FPS on real Switch hardware. Rather than hiding the failure behind a
+synthetic framerate, this build draws three live numeric readouts at the top
+of the game:
+
+- **Left**: delivered frames per second, averaged over 60 frames
+- **Middle**: guest emulation + input time, milliseconds per frame
+- **Right**: drawing / host presentation time, milliseconds per frame
+
+The readings also appear in stderr as
+`[SMW Switch perf] fps=... guest_ms=... draw_ms=... widescreen=...`
+if the homebrew console is accessible. Performance labels are in this
+README because the numeric overlay deliberately avoids text-renderer
+dependencies.
+
+**Switch controller diagnostic controls:**
+
+- **Hold L + R, press Plus**: switch between adaptive widescreen and
+  native SNES 4:3 rendering, without rebuilding or replacing the ROM
+- **Hold L + R, press Minus**: show/hide the numeric readouts
+
+Compare native 4:3 and widescreen at the **same point in gameplay**.
+If both have low FPS and guest milliseconds dominate, the problem is
+the hybrid 65816 LLE/AOT execution path or APU scheduling, not the
+widescreen compositor. If native 4:3 is much faster, focus on
+`SmwRendererDraw` and VRAM/raster capture. If FPS is low while
+both stage times are low, look for audio-device stalls or SDL vsync waits.
+
+These are measurements and isolation controls, **not a claim that the
+intro glitch or the 60 FPS performance issue is fixed**. Preserve
+the last bootable NRO so you can roll back if necessary.
