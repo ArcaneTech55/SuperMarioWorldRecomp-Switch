@@ -29,3 +29,12 @@ int smw_switch_engine_draw(SmwSwitchEngineFrame frame, uint32_t flags) {
   RtlDrawPpuFrame((uint8_t *)frame.pixels, frame.pitch_bytes, flags);
   return 1;
 }
+
+int smw_switch_engine_render_present(SmwSwitchVideo *video,
+                                     SmwSwitchEngineFrame frame,
+                                     uint32_t flags) {
+  if (!video || !smw_switch_engine_draw(frame, flags)) return 0;
+  return smw_switch_video_present(video, frame.pixels,
+                                  SMW_RECOMP_WIDE_W, SMW_RECOMP_WIDE_H,
+                                  (int)frame.pitch_bytes);
+}
