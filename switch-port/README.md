@@ -217,3 +217,40 @@ bash switch-port/build-game-nro.sh "../Super Mario World (USA).sfc"
 This addresses the mismatch with libnx's required linker model; a
 successful final link and Switch boot still require verification on the
 actual devkitA64 toolchain and console.
+
+## Switch performance / widescreen validation build
+
+The first bootable build ran but was slow, showed 4:3 title art, and had
+corrupt-looking intro frames. This branch now has Switch-only work to:
+
+- Preserve the original PPU output for the native 256-pixel center of levels
+  rather than reconstructing it in the CPU compositor
+- Render only the **actual** left/right level extensions with the custom
+  widescreen raster engine
+- Skip expensive VRAM raster snapshot capture outside gameplay levels
+- Avoid applying the desktop frame-delay timer after an SDL vsynced present
+- Print a measured `[SMW Switch perf] ... fps` message per 120 frames
+
+This is a performance and correctness improvement **attempt**, not a guarantee
+of 60 FPS. Stable 60 FPS requires an actual-device measurement. The title art
+was authored for the original SNES view; it still displays within the wider
+canvas and requires newly composed title art for full native 16:9 content.
+No stretching or fake expansion is introduced.
+
+Rebuild all objects because `src/smw_renderer.c` is part of the game archive:
+
+```sh
+cd ~/Desktop/SMW-Switch/SuperMarioWorldRecomp-Switch
+git pull origin switch-port
+bash switch-port/build-game-nro.sh "../Super Mario World (USA).sfc"
+```
+
+Then copy the new NRO into the staging folder used for the Switch SD card:
+
+```sh
+cp switch-port/game-build/SuperMarioWorldRecomp-Switch.nro \
+  ~/Desktop/SMW-Switch-Ready/switch/smw-recomp/
+```
+
+The user-owned `smw.sfc` on the SD card need not change. Test title and
+intro stability, first gameplay level, controls, audio pacing, and actual FPS.
