@@ -4,6 +4,8 @@
 typedef struct SmwSwitchPad {
   uint16_t snes;  /* SNES B,Y,Select,Start,Up,Down,Left,Right,A,X,L,R bit order */
   int connected;
+  int toggle_widescreen; /* L + R + Plus pressed */
+  int toggle_stats;      /* L + R + Minus pressed */
 } SmwSwitchPad;
 enum { SMW_SNES_B=1u<<0, SMW_SNES_Y=1u<<1, SMW_SNES_SELECT=1u<<2,
        SMW_SNES_START=1u<<3, SMW_SNES_UP=1u<<4, SMW_SNES_DOWN=1u<<5,
