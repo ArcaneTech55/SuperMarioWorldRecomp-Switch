@@ -82,3 +82,38 @@ sdmc:/switch/smw-recomp/
 ```
 
 **The project still lacks a complete libnx build target for the generated 65816 game, the snesrecomp runner and their desktop library dependencies. The game entrypoint changes have not been cross-compiled or tested on the Switch.** The diagnostic `Makefile` is still separate and does not provide a game build.
+
+## New: cross-compiling the actual game and SNES hardware for Switch
+
+The repository now includes a non-diagnostic cross-build pipeline for the
+**actual recompiled Super Mario World game code** and the **snesrecomp
+SNES CPU/PPU/APU/interpreter core**.
+
+Run from your existing clone:
+
+```bash
+cd ~/Desktop/SMW-Switch/SuperMarioWorldRecomp-Switch
+git pull origin switch-port
+bash switch-port/build-recomp-arm64.sh "../Super Mario World (USA).sfc"
+```
+
+The script verifies the ROM, regenerates untracked `src/gen/` output,
+applies required game renderer hooks, compiles generated/handwritten game
+units with devkitA64 and compiles the pinned SNES hardware/runner core. If
+the compiler accepts all selected units, it produces:
+
+- `switch-port/game-build/libsmw-game-core-aarch64.a`
+- `switch-port/game-build/libsnesrecomp-hardware-aarch64.a`
+- `switch-port/game-build/{smw,runtime}-unresolved-symbols.txt` (cross-link audit)
+
+**This is an intermediary ARM64 source-compile target, not the final game NRO.**
+It does not compile every desktop host subsystem (renderer window lifecycle,
+launcher/UI, game startup's complete host dependencies, mods, C++ host tools,
+game audio/storage glue) and does not perform the final link. Expect the first
+cross-compiler error to identify compatibility work; those errors are not
+silently suppressed.
+
+This build has not been run on a real Switch toolchain by the assistant;
+the user's M2 Mac has the prerequisite cross compiler. The original
+`switch-port/Makefile` is still a *separate platform diagnostic* and must
+not be mistaken for the game target.
