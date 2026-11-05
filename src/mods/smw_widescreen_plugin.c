@@ -1,3 +1,7 @@
+/* The native Switch game initializes adaptive widescreen directly in
+ * src/main.c and has no desktop recomp-ui launcher or mod catalog.
+ * Keep the full desktop plugin when the package runtime is enabled. */
+#if defined(SNESRECOMP_ENABLE_MODS) && SNESRECOMP_ENABLE_MODS
 #include "mod_runtime.h"
 #include "recomp_launcher.h"
 #include "smw_renderer.h"
@@ -28,3 +32,4 @@ SNES_MOD_CONSTRUCTOR(smw_register_widescreen_plugin) {
   (void)snes_mod_register_reset_callback(smw_renderer_reset);
   (void)snes_mod_register_activation_plugin("super-mario-world.widescreen",smw_renderer_activate);
 }
+#endif /* SNESRECOMP_ENABLE_MODS */
