@@ -56,7 +56,13 @@ hardware=(
 )
 objs=()
 for name in "${sources[@]}"; do
-  src="$RUNNER/$name"
+  # host_report.c uses the Unix uname API, which libnx lacks.
+  # Compile a fork-local implementation while leaving snesrecomp pinned.
+  if [[ "$name" == "host_report.c" ]]; then
+    src="$SELF/compat/host_report.c"
+  else
+    src="$RUNNER/$name"
+  fi
   [[ -f "$src" ]] || { echo "Missing runtime file: $src" >&2; exit 1; }
   obj="$OBJ/runtime-${name%.c}.o"
   echo "ARM64 runtime: $name"
