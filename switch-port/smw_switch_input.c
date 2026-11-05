@@ -28,7 +28,7 @@ SmwSwitchPad smw_switch_input_poll(void) {
   if (held & HidNpadButton_X) snes |= SMW_SNES_X;
   if (held & HidNpadButton_L) snes |= SMW_SNES_L;
   if (held & HidNpadButton_R) snes |= SMW_SNES_R;
-  if (toggle_widescreen || toggle_stats) snes &= ~(SMW_SNES_START | SMW_SNES_SELECT);
+  if (debug_chord) snes &= ~(SMW_SNES_START | SMW_SNES_SELECT);
   return (SmwSwitchPad){snes, padIsConnected(&pad), toggle_widescreen, toggle_stats};
 }
 void smw_switch_input_exit(void) {}
