@@ -11,6 +11,19 @@ export DEVKITPRO DEVKITA64
 export PATH="$DEVKITPRO/tools/bin:$DEVKITA64/bin:$DEVKITPRO/portlibs/switch/bin:$PATH"
 CC="$DEVKITA64/bin/aarch64-none-elf-gcc"
 AR="$DEVKITA64/bin/aarch64-none-elf-ar"
+# The Switch SDL2 headers are typically in portlibs/switch/include/SDL2.
+# SDL_compat.h uses <SDL.h>, so ask the target pkg-config for its include
+# directory rather than relying on the generic portlibs include directory.
+if ! command -v aarch64-none-elf-pkg-config >/dev/null 2>&1; then
+  echo "Missing Switch pkg-config. Install the devkitPro switch-sdl2 portlib." >&2
+  exit 1
+fi
+if ! aarch64-none-elf-pkg-config --exists sdl2; then
+  echo "Switch SDL2 package not found. Install switch-sdl2 with devkitPro pacman." >&2
+  exit 1
+fi
+read -r -a SDL_CFLAGS <<< "$(aarch64-none-elf-pkg-config --cflags sdl2)"
+
 BUILD="$SELF/game-build"
 OBJECTS="$BUILD/objects"
 EXPECTED_SHA1="6b47bb75d16514b6a476aa0c73a683a2a4c18765"
@@ -61,6 +74,8 @@ CFLAGS=(
   "-I$ROOT/snesrecomp/runner/src/snes"
   "-I$ROOT/snesrecomp/runner/src/desktop"
   "-I$DEVKITPRO/libnx/include"
+  "-I$DEVKITPRO/portlibs/switch/include"
+  "${SDL_CFLAGS[@]}"
 )
 objects=()
 for src in "${generated[@]}"; do
