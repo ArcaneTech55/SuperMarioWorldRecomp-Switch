@@ -83,7 +83,7 @@ manifest="$BUILD/game-compile-manifest.tsv"
 for src in "${generated[@]}"; do
   base="$(basename "${src%.c}")"
   obj="$OBJECTS/gen-$base.o"
-  printf '%s\\t%s\\n' "$src" "$obj" >> "$manifest"
+  printf '%s\t%s\n' "$src" "$obj" >> "$manifest"
   objects+=("$obj")
 done
 echo "[3/4] Compiling handwritten SMW engine and adaptive widescreen components"
@@ -102,10 +102,10 @@ manual=(
 for src in "${manual[@]}"; do
   name="$(basename "${src%.c}")"
   obj="$OBJECTS/hand-$name.o"
-  printf '%s\\t%s\\n' "$src" "$obj" >> "$manifest"
+  printf '%s\t%s\n' "$src" "$obj" >> "$manifest"
   objects+=("$obj")
 done
-python3 "$SELF/compile_cached.py" --cc "$CC" --manifest "$manifest" \\
+python3 "$SELF/compile_cached.py" --cc "$CC" --manifest "$manifest" \
   --jobs "${SMW_BUILD_JOBS:-2}" -- "${CFLAGS[@]}"
 echo "[4/4] Archiving real SMW game code"
 OUT="$BUILD/libsmw-game-core-aarch64.a"
