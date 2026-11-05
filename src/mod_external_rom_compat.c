@@ -1,14 +1,17 @@
 #include <string.h>
+#if defined(SNESRECOMP_ENABLE_MODS) && SNESRECOMP_ENABLE_MODS
 #include "mod_runtime.h"
 #include "recomp_launcher.h"
+#endif
 
-/* Called by an activated plugin, after the loader has committed its selection.
- * Ask the loader for its verified resource; its catalog/state location belongs
- * to the engine and is not necessarily mods/state.toml. */
+/* The package catalog and its verified resource provider are desktop-only.
+ * When mods are disabled (as in the native Switch build), there is no external
+ * ROM resource to resolve. Do not reference recomp-ui's launcher ABI. */
 const char *snes_mod_external_rom_path(const char *package_id,
                                      const char *feature_id,
                                      const char *resource_id)
 {
+#if defined(SNESRECOMP_ENABLE_MODS) && SNESRECOMP_ENABLE_MODS
     static RecompLauncherCModResource resource;
     const RecompLauncherCModProvider *provider =
         snes_mod_runtime_launcher_provider_c();
@@ -24,5 +27,10 @@ const char *snes_mod_external_rom_path(const char *package_id,
             strcmp(resource.id, resource_id) == 0 && resource.verified)
             return resource.path[0] ? resource.path : NULL;
     }
+#else
+    (void)package_id;
+    (void)feature_id;
+    (void)resource_id;
+#endif
     return NULL;
 }
