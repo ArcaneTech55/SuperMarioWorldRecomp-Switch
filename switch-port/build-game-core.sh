@@ -42,7 +42,7 @@ mkdir -p "$OBJECTS"
 echo "[1/4] Regenerating SMW 65816 C code from original owner ROM"
 (
   cd "$ROOT"
-  SNESRECOMP_ANALYSIS_BACKEND="${SNESRECOMP_ANALYSIS_BACKEND:-python}" \
+  SNESRECOMP_ANALYSIS_BACKEND=native \
      bash tools/regen.sh --stock --no-tests
   python3 tools/apply_renderer_hooks.py --gen-dir src/gen
   python3 tools/apply_coop_hooks.py --gen-dir src/gen
