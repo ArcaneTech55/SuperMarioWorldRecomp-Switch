@@ -2082,7 +2082,11 @@ error_reading:;
   host_report_breadcrumb("entering main loop");
   StallLogInit();
 
+#ifdef __SWITCH__
+  while (running && appletMainLoop()) {
+#else
   while (running) {
+#endif
     Uint64 stall_t0 = SDL_GetPerformanceCounter();
     Uint64 stall_t_events = stall_t0;
     Uint64 stall_t_run = stall_t0;
