@@ -161,3 +161,32 @@ bash switch-port/build-runtime-core.sh
 
 This source adaptation is not yet verified to complete the runtime build; any
 further missing POSIX APIs will require similar genuine libnx adaptations.
+
+## ARM64 final-link fixes (Nov 5, 2026)
+
+When both `libsmw-game-core-aarch64.a` and
+`libsnesrecomp-hardware-aarch64.a` compile but `attempt-game-link.sh`
+reports unresolved symbols, update to `switch-port` and **rebuild both
+archives** before linking again. The runtime previously compiled with reverse
+debug hooks enabled by an upstream default; the production Switch build now
+explicitly sets `SNESRECOMP_REVERSE_DEBUG=0` throughout. Both libraries
+must be regenerated with consistent flags.
+
+The final-link target now compiles `smw_switch_input.c`, includes the
+upstream non-TCP `desktop/post_mortem.c` diagnostics implementation,
+and does not define `SNESRECOMP_NET` at all in the offline build (some
+upstream code tests the macro's *presence*, not its value). Switch compilation
+also omits desktop plugin registration constructors and cannot launch the
+Falcon cache-builder helper subprocess; neither is needed for normal SMW
+gameplay. The original native wide-scene renderer remains linked in
+`libsmw-game-core-aarch64.a`.
+
+```sh
+cd ~/Desktop/SMW-Switch/SuperMarioWorldRecomp-Switch
+git pull origin switch-port
+bash switch-port/build-game-nro.sh "../Super Mario World (USA).sfc"
+```
+
+This is still an **experimental full-link attempt**, not verified Switch
+hardware gameplay. If `ld` emits new errors, those are meaningful missing
+host dependencies that must be resolved before release.
