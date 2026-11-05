@@ -28,7 +28,7 @@ RUNNER="$ROOT/snesrecomp/runner/src"
 OBJ="$SELF/game-build/runtime-objects"
 mkdir -p "$OBJ"
 flags=(
-  -std=gnu11 -O2 -ffunction-sections -fdata-sections
+  -std=gnu11 -O2 -fPIE -ffunction-sections -fdata-sections
   -DSNESRECOMP_TRACE=0 -DSNESRECOMP_ENABLE_MODS=0
   -DSNESRECOMP_SDL3=0 -D__SWITCH__ -DSNESRECOMP_REVERSE_DEBUG=0
   "-I$ROOT/src" "-I$ROOT/recomp" "-I$RUNNER"
