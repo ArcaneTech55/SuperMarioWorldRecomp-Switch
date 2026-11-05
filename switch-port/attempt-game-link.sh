@@ -24,7 +24,7 @@ SDL_CFLAGS=( $(aarch64-none-elf-pkg-config --cflags sdl2) )
 # shellcheck disable=SC2207
 SDL_LIBS=( $(aarch64-none-elf-pkg-config --libs sdl2) )
 CFLAGS=(
- -std=gnu11 -O2 -ffunction-sections -fdata-sections
+ -std=gnu11 -O2 -fPIE -ffunction-sections -fdata-sections
  -DSNESRECOMP_TRACE=0 -DSNESRECOMP_ENABLE_MODS=0 -DSNESRECOMP_SDL3=0
  -D__SWITCH__ -DSDL_MAIN_HANDLED -DSNESRECOMP_REVERSE_DEBUG=0
  "-I$ROOT" "-I$ROOT/src" "-I$ROOT/recomp"
@@ -97,7 +97,7 @@ for src in "$ROOT"/overrides/*/*.c; do
 done
 echo "Linking actual Super Mario World executable ELF"
 ELF="$OUT/SuperMarioWorldRecomp-Switch.elf"
-"$CC" -specs="$DEVKITPRO/libnx/switch.specs" -Wl,--gc-sections \
+"$CC" -fPIE -specs="$DEVKITPRO/libnx/switch.specs" -Wl,--gc-sections \
   -o "$ELF" "${objs[@]}" \
   -Wl,--start-group "$OUT/libsmw-game-core-aarch64.a" \
   "$OUT/libsnesrecomp-hardware-aarch64.a" -Wl,--end-group \
