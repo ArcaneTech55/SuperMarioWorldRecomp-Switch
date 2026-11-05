@@ -219,6 +219,12 @@ static uint32 g_input_state;
 static uint32 g_pad_buttons;
 static bool g_display_perf;
 static int g_curr_fps;
+#ifdef __SWITCH__
+static int g_switch_measured_fps;
+static int g_switch_guest_ms;
+static int g_switch_draw_ms;
+static bool g_switch_stats_visible = true;
+#endif
 static int g_ppu_render_flags = 0;
 static int g_snes_width, g_snes_height;
 static int g_sdl_audio_mixer_volume = SNESRECOMP_SDL_MIX_MAXVOLUME;
@@ -582,6 +588,18 @@ static void DrawPpuFrameWithPerf(void) {
   const uint32 dump_frame = snes_frame_counter ? snes_frame_counter - 1 : 0;
   FrameDump_Present(dump_frame, pixel_buffer, pitch, g_snes_width, g_snes_height);
   FrameDump_Ppu(dump_frame, g_ppu);
+#ifdef __SWITCH__
+  /* Three numeric columns: actual FPS, guest milliseconds, render milliseconds.
+   * The PPU-only g_curr_fps counter does not measure throughput. */
+  if (g_switch_stats_visible) {
+    RenderNumber(pixel_buffer + 3 * pitch + 4 * 4, pitch,
+                 g_switch_measured_fps, 0);
+    RenderNumber(pixel_buffer + 3 * pitch + 75 * 4, pitch,
+                 g_switch_guest_ms, 0);
+    RenderNumber(pixel_buffer + 3 * pitch + 147 * 4, pitch,
+                 g_switch_draw_ms, 0);
+  }
+#endif
   g_renderer_funcs.EndDraw();
   BenchmarkPhaseEnd(kSnesRecompBenchmarkPhase_HostPresent, host_phase);
 }
@@ -2260,6 +2278,15 @@ error_reading:;
      * enumeration or keybind remapping required on Switch. */
     SmwSwitchPad switch_pad = smw_switch_input_poll();
     g_pad_buttons = switch_pad.connected ? switch_pad.snes : 0;
+    if (switch_pad.toggle_widescreen) {
+      g_smw_video.enabled = !g_smw_video.enabled;
+      SmwRendererResetScene();
+      UpdateWidescreen();
+      host_report_breadcrumb("Switch diagnostic: widescreen %s",
+                             g_smw_video.enabled ? "enabled" : "disabled");
+    }
+    if (switch_pad.toggle_stats)
+      g_switch_stats_visible = !g_switch_stats_visible;
 #endif
 
     g_audio_producer_active = g_audio_device != 0 && !g_turbo &&
@@ -2530,21 +2557,30 @@ error_reading:;
     }
 #endif /* !__SWITCH__: desktop frame delay */
 #ifdef __SWITCH__
-    /* Actual delivered frames per second, not a forced 60-FPS label.
-     * Emit infrequently so logging itself does not materially affect speed. */
+    /* Measured throughput and split-stage timings, averaged over 60 frames. */
     {
       static Uint64 sample_begin;
       static unsigned sample_frames;
+      static double accumulated_guest, accumulated_draw;
       const Uint64 now = SDL_GetPerformanceCounter();
-      if (!sample_begin) sample_begin = now;
-      if (++sample_frames >= 120) {
+      if (!sample_begin) sample_begin = stall_t0;
+      accumulated_guest += PerfDeltaMs(stall_t_events, stall_t_run);
+      accumulated_draw += PerfDeltaMs(stall_t_run, stall_t_draw);
+      if (++sample_frames >= 60) {
         const double secs = (double)(now - sample_begin) /
                             (double)SDL_GetPerformanceFrequency();
-        if (secs > 0.0)
-          fprintf(stderr, "[SMW Switch perf] %.1f fps over %u frames\n",
-                  sample_frames / secs, sample_frames);
+        if (secs > 0.0) {
+          g_switch_measured_fps = (int)(sample_frames / secs + 0.5);
+          g_switch_guest_ms = (int)(accumulated_guest / sample_frames + 0.5);
+          g_switch_draw_ms = (int)(accumulated_draw / sample_frames + 0.5);
+          fprintf(stderr,
+                  "[SMW Switch perf] fps=%d guest_ms=%d draw_ms=%d widescreen=%d\n",
+                  g_switch_measured_fps, g_switch_guest_ms, g_switch_draw_ms,
+                  (int)g_smw_video.enabled);
+        }
         sample_begin = now;
         sample_frames = 0;
+        accumulated_guest = accumulated_draw = 0.0;
       }
     }
 #endif
