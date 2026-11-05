@@ -254,3 +254,29 @@ cp switch-port/game-build/SuperMarioWorldRecomp-Switch.nro \
 
 The user-owned `smw.sfc` on the SD card need not change. Test title and
 intro stability, first gameplay level, controls, audio pacing, and actual FPS.
+
+## Faster incremental builds on macOS
+
+The Switch build now uses `switch-port/compile_cached.py` for all generated
+game units, handwritten engine, SNES runtime and host units. It keeps GCC
+`-MD` dependency files and content digests, so regenerated sources with
+unchanged bytes do not get recompiled. Any changed source, compiler flags,
+compiler binary, or included header invalidates its object. The first build
+after this update creates cache metadata and still compiles all units; later
+builds are substantially faster when code is unchanged.
+
+The default is two parallel compiler jobs, a cautious setting for an M2 Mac:
+
+```sh
+cd ~/Desktop/SMW-Switch/SuperMarioWorldRecomp-Switch
+git pull origin switch-port
+SMW_BUILD_JOBS=2 bash switch-port/build-game-nro.sh "../Super Mario World (USA).sfc"
+```
+
+For a Mac with enough free RAM, `SMW_BUILD_JOBS=3` or `4` allows more
+parallelism; high values may use substantially more RAM during large generated
+translation units. Rebuilding the static archives and linking still happens
+each run, but those stages are much cheaper than 100+ compiler invocations.
+
+Regeneration remains enabled by default for correctness; this optimization
+specifically targets expensive ARM64 C compilation.
