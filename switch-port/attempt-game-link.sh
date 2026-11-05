@@ -26,7 +26,7 @@ SDL_LIBS=( $(aarch64-none-elf-pkg-config --libs sdl2) )
 CFLAGS=(
  -std=gnu11 -O2 -fPIC -ffunction-sections -fdata-sections
  -DSNESRECOMP_TRACE=0 -DSNESRECOMP_ENABLE_MODS=0 -DSNESRECOMP_SDL3=0
- -DSNESRECOMP_NET=0 -D__SWITCH__ -DSDL_MAIN_HANDLED
+ -D__SWITCH__ -DSDL_MAIN_HANDLED -DSNESRECOMP_REVERSE_DEBUG=0
  "-I$ROOT" "-I$ROOT/src" "-I$ROOT/recomp"
  "-I$ROOT/snesrecomp/runner/src"
  "-I$ROOT/snesrecomp/runner/src/desktop"
@@ -58,6 +58,7 @@ host=(
   src/mods/coop/coop_simulation.c
   src/mods/coop/coop_terrain.c
   src/mods/coop/coop_presentation.c
+  switch-port/smw_switch_input.c
 )
 # Use game-side host path/launcher and core audio handling from the pinned
 # snesrecomp runtime. Some of these are desktop-facing and may still require
@@ -68,6 +69,7 @@ runner_host=(
   snes_savestate_menu.c snes_osd.c snes_rewind.c
   host_mesh.c host_mesh_builder.c guarded_patch.c mod_audio.c
   diagnostics/trace_writer.c diagnostics/replay_writer.c
+  desktop/post_mortem.c
 )
 objs=()
 for src in "${host[@]}"; do
