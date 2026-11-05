@@ -190,3 +190,30 @@ bash switch-port/build-game-nro.sh "../Super Mario World (USA).sfc"
 This is still an **experimental full-link attempt**, not verified Switch
 hardware gameplay. If `ld` emits new errors, those are meaningful missing
 host dependencies that must be resolved before release.
+
+## libnx PIE relocation fix
+
+The final ELF is linked using libnx `switch.specs`, which requests a
+position-independent executable with strict read-only relocation checks
+(`-pie -z text`). The stock Switch application ABI uses `-fPIE` during
+**every** C compilation and the Cortex-A57 target flags. Compiling the
+game archives and host with default non-PIE code generated a linker
+failure even though all sources compiled:
+
+```
+ld: read-only segment has dynamic relocations
+```
+
+All three scripts now use
+`-march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE`.
+Because PIE changes code generation, **old archives must be rebuilt**:
+
+```sh
+cd ~/Desktop/SMW-Switch/SuperMarioWorldRecomp-Switch
+git pull origin switch-port
+bash switch-port/build-game-nro.sh "../Super Mario World (USA).sfc"
+```
+
+This addresses the mismatch with libnx's required linker model; a
+successful final link and Switch boot still require verification on the
+actual devkitA64 toolchain and console.
