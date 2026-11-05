@@ -34,4 +34,12 @@ cc -std=c11 -Wall -Wextra -Werror -pedantic \
   "$ROOT/switch-port/tests/test_video.c" \
   -o "$tmp_bin"
 "$tmp_bin"
-echo "Native Switch game executable is NOT yet implemented."
+save_bin="$(mktemp "${TMPDIR:-/tmp}/smw-save.XXXXXXXX")"
+trap 'rm -f "$save_bin"' EXIT
+cc -std=gnu11 -Wall -Wextra -Werror \
+  "$ROOT/switch-port/smw_switch_save.c" \
+  "$ROOT/switch-port/tests/test_save.c" \
+  -o "$save_bin"
+"$save_bin"
+echo "Switch platform diagnostic build command: bash switch-port/build-platform-check.sh"
+echo "NOTE: the actual recomp gameplay target remains unported."
