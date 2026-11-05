@@ -72,19 +72,21 @@ runner_host=(
   desktop/post_mortem.c
 )
 objs=()
+manifest="$OUT/host-compile-manifest.tsv"
+: > "$manifest"
 for src in "${host[@]}"; do
   [[ -f "$ROOT/$src" ]] || { echo "Missing game source $src" >&2; exit 1; }
   label="${src//\//_}"
   obj="$OUT/host-objects/${label%.c}.o"
   echo "Compiling game host: $src"
-  "$CC" "${CFLAGS[@]}" -c "$ROOT/$src" -o "$obj"
+  printf '%s\t%s\n' "$ROOT/$src" "$obj" >> "$manifest"
   objs+=("$obj")
 done
 for src in "${runner_host[@]}"; do
   label="${src//\//_}"
   obj="$OUT/host-objects/runner-${label%.c}.o"
   echo "Compiling runner host: $src"
-  "$CC" "${CFLAGS[@]}" -c "$ROOT/snesrecomp/runner/src/$src" -o "$obj"
+  printf '%s\t%s\n' "$ROOT/snesrecomp/runner/src/$src" "$obj" >> "$manifest"
   objs+=("$obj")
 done
 shopt -s nullglob
@@ -92,9 +94,11 @@ for src in "$ROOT"/overrides/*/*.c; do
   name="$(basename "${src%.c}")"
   obj="$OUT/host-objects/override-$name.o"
   echo "Compiling SMW override: $src"
-  "$CC" "${CFLAGS[@]}" -c "$src" -o "$obj"
+  printf '%s\t%s\n' "$src" "$obj" >> "$manifest"
   objs+=("$obj")
 done
+python3 "$HERE/compile_cached.py" --cc "$CC" --manifest "$manifest" \
+  --jobs "${SMW_BUILD_JOBS:-2}" -- "${CFLAGS[@]}"
 echo "Linking actual Super Mario World executable ELF"
 ELF="$OUT/SuperMarioWorldRecomp-Switch.elf"
 "$CC" -fPIE -specs="$DEVKITPRO/libnx/switch.specs" -Wl,--gc-sections \
