@@ -2280,6 +2280,7 @@ error_reading:;
     g_pad_buttons = switch_pad.connected ? switch_pad.snes : 0;
     if (switch_pad.toggle_widescreen) {
       g_smw_video.enabled = !g_smw_video.enabled;
+      g_smw_video.aspect = g_smw_video.enabled ? 16.0 / 9.0 : 4.0 / 3.0;
       SmwRendererResetScene();
       UpdateWidescreen();
       host_report_breadcrumb("Switch diagnostic: widescreen %s",
