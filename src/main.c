@@ -1320,7 +1320,7 @@ int main(int argc, char** argv) {
             snes_mod_runtime_last_error_c());
 #endif
 
-#if defined(SNES_LAUNCHER) || defined(RECOMP_LAUNCHER)
+#if !defined(__SWITCH__) && (defined(SNES_LAUNCHER) || defined(RECOMP_LAUNCHER))
   /* GUI launcher: pick/verify ROM + tune settings before boot. Skipped for
    * headless/scripted paths (--paused/--script/--framedump), an explicit
    * positional ROM, or SNESRECOMP_NO_LAUNCHER. On UNAVAILABLE it falls through
@@ -1563,6 +1563,7 @@ int main(int argc, char** argv) {
 #endif
 
   /* Resolve the SNES ROM path: argv[0] -> rom.cfg cache -> file picker. */
+#ifndef __SWITCH__
   if (!rom_resolved_by_launcher) {
     char *la_argv[2] = {
       (char *)"smw",
@@ -1575,6 +1576,7 @@ int main(int argc, char** argv) {
       return 1;
     }
   }
+#endif /* desktop ROM resolver */
 #ifdef SMW_COOP_BUILD
   /* Keep rom.cfg pointed at the untouched stock dump. The deterministic
    * derivative lives beside the executable and is the image actually loaded. */
